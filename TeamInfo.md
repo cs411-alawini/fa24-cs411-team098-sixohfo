@@ -18,11 +18,11 @@
 ## Project Information
 
 |   Info      |        Description     |
-| ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
+| ----------- | ---------------------- |  
+|  Title      |          Seeken        |
 | System URL  |      link_to_system    |
 | Video Link  |      link_to_video     |
 
 ## Project Summary
 
-This is a summary of the project!
+Seeken is a web application that helps people seek and save valuable information that is mentioned in a podcast. After watching a podcast, users can input the URL to Seeken to find the information on companies, books, or important people. Users can also save certain pieces of information to maintain their favorite entities from the podcasts they've watched.
