@@ -366,7 +366,7 @@ def analyze():
 @app.route('/check_db_for_string', methods=['POST'])
 def check_db():
     data = request.json
-    string = data.get('string')
+    string = data.get('entity')
     ty = data.get('type')
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -375,12 +375,12 @@ def check_db():
     if not string:
         return jsonify({"error": "Input string cannot be empty"}), 400
     
-    if ty == 'company':
+    if ty == 'companies':
         query = """
             SELECT *  
             FROM Companies
             WHERE CompanyName = """ + "\"" + string + "\"" 
-    elif ty == 'person':
+    elif ty == 'people':
         query = """
             SELECT *
             FROM People
@@ -390,6 +390,21 @@ def check_db():
             SELECT *
             FROM Books
             WHERE BookName = """ + "\"" + string + "\""
+        
+    if ty == "people":
+        cursor.execute(query)
+        result = cursor.fetchmany()
+
+        if result:
+            # result = list(result)
+            # result[2] = str(result[2]) + " State"
+            # result[3] = str(result[3]) + " Million Networth"
+            result = list(result[0][1:])
+            result[1] = str(result[1]) + "  Million Networth"
+            
+            return jsonify({"message": "found", "result": result}), 200
+        else:
+            return jsonify({"message": "not found"}), 404
 
     cursor.execute(query)
     result = cursor.fetchone()
@@ -401,7 +416,18 @@ def check_db():
 
 
     if result:
-        return jsonify({"message": "found", "result": result[1:]}), 200
+        if ty == 'companies':
+            result = list(result)
+            result[2] = str(result[2]) + " State"
+            result[3] = str(result[3]) + " Million Networth"
+            
+            return jsonify({"message": "found", "result": result[1:]}), 200
+        elif ty == 'people':
+            return jsonify({"message": "found", "result": result[1:]}), 200
+        else:
+            result = list(result)
+            result[3] = str(result[3]) + " Rating"
+            return jsonify({"message": "found", "result": result[1:]}), 200
     else:
         return jsonify({"message": "not found"}), 404
 
