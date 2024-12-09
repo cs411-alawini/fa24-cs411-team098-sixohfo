@@ -1,12 +1,8 @@
-import React from "react";
-import "./Card.css";
-
-const Card = ({ title, description }) => {
+// src/components/Card.js
+const Card = ({ type, entity }) => {
   return (
     <div className="card">
-      <h2>{title}</h2>
-      <div className="image-placeholder">IMG</div>
-      <p>{description}</p>
+      <h3>{type}: {entity}</h3>
     </div>
   );
 };
