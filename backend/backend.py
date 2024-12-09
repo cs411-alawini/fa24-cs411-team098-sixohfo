@@ -178,6 +178,49 @@ def get_most_mentioned_books():
             return jsonify({'error': 'Failed to retrieve most mentioned books.'}), 500
     else:
         return jsonify({'error': 'Failed to connect to the database.'}), 500
+    
+
+@app.route("/valid_user", methods=['POST'])
+def valid_user():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    try:
+        conn = get_db_connection()
+        
+        # Create a cursor object
+        cur = conn.cursor()
+        
+        # Execute the query to retrieve the user from the database
+        query = "SELECT * FROM User WHERE username=%s AND password=%s"
+        params = (username, password)
+        
+        # Execute the query and store the result in the 'result' variable
+        cur.execute(query, params)
+        result = cur.fetchone()
+        
+        # Check if the user exists and the password is correct
+        if result:
+            return jsonify({
+                "message": f"Welcome back, {username}!",
+                "id": result[0],
+                "role": result[1]
+            }), 200
+        else:
+            return jsonify({"error": "Invalid username or password"}), 401
+        
+    except mysql.connector.Error as e:
+        # Handle the exception and return a meaningful error message to the client
+        error_message = f"Database connection failed: {e}"
+        if conn.is_connected():
+            cur.close()
+        conn.close()
+        return jsonify({"error": error_message}), 500
+    
+    finally:
+        # Close the cursor (not needed, as it's already closed in the exception handler)
+        pass
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
