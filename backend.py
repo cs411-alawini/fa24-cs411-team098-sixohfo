@@ -32,93 +32,152 @@ def test_connection():
     else:
         return jsonify({"error": "Failed to connect to the database."})
 
-# CREATE - Add a new record
-@app.route("/create", methods=["POST"])
-def create_record():
+# CREATE: Add a new user
+@app.route('/users', methods=['POST'])
+def create_user():
     data = request.json
-    name = data.get("name")
-    email = data.get("email")
+    username = data['Username']
+    password = data['Password']
 
     conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (name, email))
-            conn.commit()
-            return jsonify({"message": "Record created successfully!"}), 201
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return jsonify({"error": "Failed to create record."}), 500
-        finally:
-            cursor.close()
-            conn.close()
-    else:
-        return jsonify({"error": "Database connection failed."}), 500
+    cursor = conn.cursor()
 
-# READ - Get all records
-@app.route("/read", methods=["GET"])
-def read_records():
+    try:
+        cursor.execute("INSERT INTO User (Username, Password) VALUES (%s, %s)", (username, password))
+        conn.commit()
+        return jsonify({"message": "User created successfully!"}), 201
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# READ: Get all users
+@app.route('/users', methods=['GET'])
+def get_users():
     conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("SELECT * FROM users")
-            results = cursor.fetchall()
-            return jsonify(results), 200
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return jsonify({"error": "Failed to fetch records."}), 500
-        finally:
-            cursor.close()
-            conn.close()
-    else:
-        return jsonify({"error": "Database connection failed."}), 500
+    cursor = conn.cursor(dictionary=True)
 
-# UPDATE - Update a record by ID
-@app.route("/update/<int:id>", methods=["PUT"])
-def update_record(id):
+    try:
+        cursor.execute("SELECT * FROM User")
+        users = cursor.fetchall()
+        return jsonify(users), 200
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# READ: Get a single user by ID
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT * FROM User WHERE UserID = %s", (user_id,))
+        user = cursor.fetchone()
+        if user:
+            return jsonify(user), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# UPDATE: Update a user's information
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
     data = request.json
-    name = data.get("name")
-    email = data.get("email")
+    username = data.get('Username')
+    password = data.get('Password')
 
     conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute("UPDATE users SET name = %s, email = %s WHERE id = %s", (name, email, id))
-            conn.commit()
-            if cursor.rowcount == 0:
-                return jsonify({"error": "No record found with the given ID."}), 404
-            return jsonify({"message": "Record updated successfully!"}), 200
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return jsonify({"error": "Failed to update record."}), 500
-        finally:
-            cursor.close()
-            conn.close()
-    else:
-        return jsonify({"error": "Database connection failed."}), 500
+    cursor = conn.cursor()
 
-# DELETE - Delete a record by ID
-@app.route("/delete/<int:id>", methods=["DELETE"])
-def delete_record(id):
+    try:
+        cursor.execute(
+            "UPDATE User SET Username = %s, Password = %s WHERE UserID = %s",
+            (username, password, user_id)
+        )
+        conn.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"message": "User not found"}), 404
+        return jsonify({"message": "User updated successfully!"}), 200
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# DELETE: Delete a user by ID
+@app.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
     conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute("DELETE FROM users WHERE id = %s", (id,))
-            conn.commit()
-            if cursor.rowcount == 0:
-                return jsonify({"error": "No record found with the given ID."}), 404
-            return jsonify({"message": "Record deleted successfully!"}), 200
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return jsonify({"error": "Failed to delete record."}), 500
-        finally:
-            cursor.close()
-            conn.close()
-    else:
-        return jsonify({"error": "Database connection failed."}), 500
+    cursor = conn.cursor()
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    try:
+        cursor.execute("DELETE FROM User WHERE UserID = %s", (user_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"message": "User not found"}), 404
+        return jsonify({"message": "User deleted successfully!"}), 200
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+    
+@app.route('/most_mentioned_entities_by_podcast', methods=['GET'])
+def get_most_mentioned_entities_by_podcast():
+    """Retrieve the most mentioned entities by podcast."""
+    connection = get_db_connection()
+    if connection is not None:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute('CALL GetMostMentionedEntitiesByPodcast')
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print(f"Error executing stored procedure: {err}")
+            return jsonify({'error': 'Failed to retrieve most mentioned entities by podcast.'}), 500
+    else:
+        return jsonify({'error': 'Failed to connect to the database.'}), 500
+
+@app.route('/most_mentioned_companies_with_revenue', methods=['GET'])
+def get_most_mentioned_companies_with_revenue():
+    """Retrieve the most mentioned companies with revenue."""
+    connection = get_db_connection()
+    if connection is not None:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute('CALL GetMostMentionedCompaniesWithRevenue')
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print(f"Error executing stored procedure: {err}")
+            return jsonify({'error': 'Failed to retrieve most mentioned companies with revenue.'}), 500
+    else:
+        return jsonify({'error': 'Failed to connect to the database.'}), 500
+
+@app.route('/most_mentioned_books', methods=['GET'])
+def get_most_mentioned_books():
+    """Retrieve the most mentioned books."""
+    connection = get_db_connection()
+    if connection is not None:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute("CALL GetMostMentionedBooks()")
+            result = cursor.fetchall()
+            return result
+        except Error as err:
+            print(f"Error executing stored procedure: {err}")
+            return jsonify({'error': 'Failed to retrieve most mentioned books.'}), 500
+    else:
+        return jsonify({'error': 'Failed to connect to the database.'}), 500
+
+if __name__ == '__main__':
+    app.run(port=8000, debug=True)
