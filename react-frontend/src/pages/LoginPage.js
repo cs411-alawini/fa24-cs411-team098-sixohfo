@@ -38,9 +38,13 @@ const LoginPage = ({ onAuthSuccess }) => {
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
+    
+
+    const user_id = Math.floor(Math.random() * (1000 - 20 + 1)) + 20;
 
     try {
-      const response = await axios.post('http://localhost:8000/signup', {
+      const response = await axios.post('http://localhost:8000/add_user', {
+        user_id: user_id,
         username: username,
         password: password,
       });
