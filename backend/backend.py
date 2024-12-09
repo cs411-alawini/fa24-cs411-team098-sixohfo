@@ -352,7 +352,6 @@ def extract_items(line):
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    print("hello")
     data = request.get_json()
     youtube_url = data.get('url')
     video_id = get_youtube_id(youtube_url)
@@ -363,6 +362,50 @@ def analyze():
         return jsonify({'books': books, 'companies': companies, 'people': people})
     else:
         return jsonify({'error': 'Unable to process the podcast.'}), 400
+    
+@app.route('/check_db_for_string', methods=['POST'])
+def check_db():
+    data = request.json
+    string = data.get('string')
+    ty = data.get('type')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if the string is not empty
+    if not string:
+        return jsonify({"error": "Input string cannot be empty"}), 400
+    
+    if ty == 'company':
+        query = """
+            SELECT *  
+            FROM Companies
+            WHERE CompanyName = """ + "\"" + string + "\"" 
+    elif ty == 'person':
+        query = """
+            SELECT *
+            FROM People
+            WHERE PersonName = """ + "\"" + string + "\""
+    else:
+        query = """
+            SELECT *
+            FROM Books
+            WHERE BookName = """ + "\"" + string + "\""
+
+    cursor.execute(query)
+    result = cursor.fetchone()
+
+    # Close the cursor and connection
+    if conn.is_connected():
+        cursor.close()
+    conn.close()
+
+
+    if result:
+        return jsonify({"message": "found", "result": result[1:]}), 200
+    else:
+        return jsonify({"message": "not found"}), 404
+
+
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
