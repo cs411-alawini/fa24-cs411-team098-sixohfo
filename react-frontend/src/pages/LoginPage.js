@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './LoginPage.css'; // Import the CSS file for styling
+import './LoginPage.css'; 
 
 const LoginPage = ({ onAuthSuccess }) => {
   const [username, setUsername] = useState('');
@@ -51,7 +51,7 @@ const LoginPage = ({ onAuthSuccess }) => {
       if (response.data.message) {
         setSuccessMessage(response.data.message);
         setErrorMessage('');
-        setIsSignUp(false); // Toggle back to login after successful sign-up
+        setIsSignUp(false); // Toggle back 
       }
     } catch (err) {
       setErrorMessage('An error occurred during sign-up. Please try again.');
@@ -71,7 +71,6 @@ const LoginPage = ({ onAuthSuccess }) => {
       if (response.data.message) {
         setSuccessMessage(response.data.message);
         setErrorMessage('');
-        // Optionally reset state or redirect
       }
     } catch (err) {
       setErrorMessage('Failed to delete account. Please check your credentials.');

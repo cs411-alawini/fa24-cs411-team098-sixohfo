@@ -27,14 +27,14 @@ h1 {
 .submit-button {
   padding: 10px 20px;
   border: none;
-  background-color: #007bff;
+  background-color: #6200ea;
   color: white;
   cursor: pointer;
   border-radius: 0 5px 5px 0;
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #6200ea;
 }
 
 .error-message {
@@ -116,7 +116,7 @@ h1 {
 }
 
 .header-button {
-  background-color: #007bff;
+  background-color: #6200ea;
   color: white;
   padding: 10px 15px;
   margin-left: 10px;
@@ -127,5 +127,5 @@ h1 {
 }
 
 .header-button:hover {
-  background-color: #0056b3;
+  background-color: #6a00ff;
 }

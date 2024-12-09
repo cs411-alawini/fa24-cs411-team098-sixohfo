@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 from youtube_transcript_api import YouTubeTranscriptApi
 import google.generativeai as genai
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS 
 
 app = Flask(__name__)
 CORS(app)
@@ -14,9 +14,9 @@ CORS(app)
 db_config = {
     'user': 'root',
     'password': 'Password',
-    'host': '34.118.207.21',  # Public IP of your GCP MySQL instance
+    'host': '34.118.207.21',  
     'database': 'seeken',
-    'port': 3306  # Default MySQL port
+    'port': 3306 
 }
 
 # Establish connection
@@ -125,19 +125,15 @@ def add_new_user():
     try:
         conn = get_db_connection()
         
-        # Create a cursor object
         cur = conn.cursor()
         
-        # Extract the userid, username, and password from the data
         user_id = data.get('user_id')
         username = data.get('username')
         password = data.get('password')
         
-        # Check if all required fields are present
         if not all([user_id, username, password]):
             return jsonify({"error": "All fields are required to add a new user"}), 400
         
-        # Execute the query to insert the new user into the database
         query = "INSERT INTO User (UserID, Username, Password) VALUES (%s, %s, %s)"
         params = (user_id, username, password)
         
@@ -147,7 +143,6 @@ def add_new_user():
         return jsonify({"message": f"New user '{username}' added successfully"}), 201
     
     except mysql.connector.Error as e:
-        # Handle the exception and return a meaningful error message to the client
         error_message = f"Database connection failed: {e}"
         if conn.is_connected():
             cur.close()
@@ -155,7 +150,6 @@ def add_new_user():
         return jsonify({"error": error_message}), 500
     
     finally:
-        # Close the cursor (not needed, as it's already closed in the exception handler)
         pass
 
 ## DELETE USER
@@ -170,7 +164,6 @@ def delete_user():
 
         conn.start_transaction(isolation_level='SERIALIZABLE')
 
-        # Check if user exists
         cursor.execute("SELECT UserID FROM User WHERE Username = %s AND Password = %s", (username, password))
         result = cursor.fetchone()
         if not result:
@@ -178,7 +171,6 @@ def delete_user():
 
         user_id = result[0]
 
-        # Delete references to user's podcasts
         cursor.execute(
             "DELETE FROM BookReference WHERE PodcastID IN (SELECT PodcastID FROM Podcast WHERE UserID = %s)", (user_id,)
         )
@@ -189,10 +181,8 @@ def delete_user():
             "DELETE FROM CompanyReference WHERE PodcastID IN (SELECT PodcastID FROM Podcast WHERE UserID = %s)", (user_id,)
         )
 
-        # Delete user's podcasts
         cursor.execute("DELETE FROM Podcast WHERE UserID = %s", (user_id,))
 
-        # Delete user
         cursor.execute("DELETE FROM User WHERE UserID = %s", (user_id,))
 
         conn.commit()
@@ -267,34 +257,29 @@ def valid_user():
     try:
         conn = get_db_connection()
         
-        # Create a cursor object
         cur = conn.cursor()
         
-        # Execute the query to retrieve the user from the database
         query = "SELECT * FROM User WHERE username=%s AND password=%s"
         params = (username, password)
         
-        # Execute the query and store the result in the 'result' variable
         cur.execute(query, params)
         result = cur.fetchone()
         
-        # Check if the user exists and the password is correct
         if result:
             return jsonify({
-                "success": True,  # Add success field
+                "success": True,  
                 "message": f"Welcome back, {username}!",
                 "id": result[0],
                 "role": result[1]
             }), 200
         else:
             return jsonify({
-                "success": False,  # Add success field
+                "success": False,  
                 "error": "Invalid username or password"
             }), 401
 
         
     except mysql.connector.Error as e:
-        # Handle the exception and return a meaningful error message to the client
         error_message = f"Database connection failed: {e}"
         if conn.is_connected():
             cur.close()
@@ -302,11 +287,10 @@ def valid_user():
         return jsonify({"error": error_message}), 500
     
     finally:
-        # Close the cursor (not needed, as it's already closed in the exception handler)
         pass
 
 
-# Set up Gemini API
+
 genai.configure(api_key="AIzaSyDMe6QJjtX4L4_IH8FRmrMqsHrwc5FCNbY")
 def get_youtube_id(url):
     video_id = url.split("v=")[1]
@@ -317,7 +301,7 @@ def get_youtube_id(url):
 
 def get_transcript(video_id):
     try:
-        print(f"Fetching transcript for video: {video_id}")  # Debugging line
+        print(f"Fetching transcript for video: {video_id}")  
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         return " ".join([entry['text'] for entry in transcript])
     except Exception as e:
@@ -377,7 +361,6 @@ def check_db():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Check if the string is not empty
     if not string:
         return jsonify({"error": "Input string cannot be empty"}), 400
     
@@ -415,7 +398,6 @@ def check_db():
     cursor.execute(query)
     result = cursor.fetchone()
 
-    # Close the cursor and connection
     if conn.is_connected():
         cursor.close()
     conn.close()

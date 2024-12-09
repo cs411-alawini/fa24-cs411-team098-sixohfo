@@ -32,14 +32,23 @@ const HomePage = () => {
         type,
         entity,
       });
+  
+      // Extract the message and result from the response
+      const { message, result } = response.data;
+      
+      // Format the result array into a string
+      const formattedResult = result.join(' - '); // You can change the separator if needed
+  
+      // Update the state with the formatted string
       setExtraInfo((prev) => ({
         ...prev,
-        [`${type}-${entity}`]: response.data.additionalInfo,
+        [`${type}-${entity}`]: `${message}: ${formattedResult}`,
       }));
     } catch (err) {
       console.error('Failed to fetch additional info:', err);
     }
   };
+  
 
   const fetchMostMentionedCompanies = async () => {
     try {
@@ -108,9 +117,10 @@ const HomePage = () => {
         ))}
       </div>
 
+
       {mostMentionedCompanies.length > 0 && (
         <div className="most-mentioned">
-          <h2>Most Mentioned Companies</h2>
+          <h2>Most Mentioned Companies with Total Revenue in Millions</h2>
           <ul>
             {mostMentionedCompanies.map((company, index) => (
               <li key={index}>
