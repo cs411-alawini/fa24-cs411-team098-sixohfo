@@ -113,20 +113,85 @@ def update_user(user_id):
         cursor.close()
         conn.close()
 
-# DELETE: Delete a user by ID
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
+@app.route("/add_user", methods=['POST'])
+def add_new_user():
+    data = request.json
+    try:
+        conn = get_db_connection()
+        
+        # Create a cursor object
+        cur = conn.cursor()
+        
+        # Extract the userid, username, and password from the data
+        user_id = data.get('user_id')
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Check if all required fields are present
+        if not all([user_id, username, password]):
+            return jsonify({"error": "All fields are required to add a new user"}), 400
+        
+        # Execute the query to insert the new user into the database
+        query = "INSERT INTO User (UserID, Username, Password) VALUES (%s, %s, %s)"
+        params = (user_id, username, password)
+        
+        cur.execute(query, params)
+        conn.commit()
+        
+        return jsonify({"message": f"New user '{username}' added successfully"}), 201
+    
+    except mysql.connector.Error as e:
+        # Handle the exception and return a meaningful error message to the client
+        error_message = f"Database connection failed: {e}"
+        if conn.is_connected():
+            cur.close()
+        conn.close()
+        return jsonify({"error": error_message}), 500
+    
+    finally:
+        # Close the cursor (not needed, as it's already closed in the exception handler)
+        pass
+
+## DELETE USER
+@app.route('/delete_user', methods=['DELETE'])
+def delete_user():
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        cursor.execute("DELETE FROM User WHERE UserID = %s", (user_id,))
-        conn.commit()
-        if cursor.rowcount == 0:
+        user_id = request.args.get('UserID')
+
+        conn.start_transaction(isolation_level='SERIALIZABLE')
+
+        # Check if user exists
+        cursor.execute("SELECT 1 FROM User WHERE UserID = %s", (user_id,))
+        if not cursor.fetchone():
             return jsonify({"message": "User not found"}), 404
-        return jsonify({"message": "User deleted successfully!"}), 200
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 400
+
+        # Delete references to user's podcasts
+        cursor.execute(
+            "DELETE FROM BookReference WHERE PodcastID IN (SELECT PodcastID FROM Podcast WHERE UserID = %s)", (user_id,)
+        )
+        cursor.execute(
+            "DELETE FROM PeopleReference WHERE PodcastID IN (SELECT PodcastID FROM Podcast WHERE UserID = %s)", (user_id,)
+        )
+        cursor.execute(
+            "DELETE FROM CompanyReference WHERE PodcastID IN (SELECT PodcastID FROM Podcast WHERE UserID = %s)", (user_id,)
+        )
+
+        # Delete user's podcasts
+        cursor.execute("DELETE FROM Podcast WHERE UserID = %s", (user_id,))
+
+        # Delete user
+        cursor.execute("DELETE FROM User WHERE UserID = %s", (user_id,))
+
+        conn.commit()
+        return jsonify({"message": "User and associated data deleted successfully"}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+
     finally:
         cursor.close()
         conn.close()
