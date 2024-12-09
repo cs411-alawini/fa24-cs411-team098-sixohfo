@@ -358,7 +358,6 @@ def extract_items(line):
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    print("hello")
     data = request.get_json()
     youtube_url = data.get('url')
     video_id = get_youtube_id(youtube_url)
@@ -369,6 +368,76 @@ def analyze():
         return jsonify({'books': books, 'companies': companies, 'people': people})
     else:
         return jsonify({'error': 'Unable to process the podcast.'}), 400
+    
+@app.route('/check_db_for_string', methods=['POST'])
+def check_db():
+    data = request.json
+    string = data.get('entity')
+    ty = data.get('type')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if the string is not empty
+    if not string:
+        return jsonify({"error": "Input string cannot be empty"}), 400
+    
+    if ty == 'companies':
+        query = """
+            SELECT *  
+            FROM Companies
+            WHERE CompanyName = """ + "\"" + string + "\"" 
+    elif ty == 'people':
+        query = """
+            SELECT *
+            FROM People
+            WHERE PersonName = """ + "\"" + string + "\""
+    else:
+        query = """
+            SELECT *
+            FROM Books
+            WHERE BookName = """ + "\"" + string + "\""
+        
+    if ty == "people":
+        cursor.execute(query)
+        result = cursor.fetchmany()
+
+        if result:
+            # result = list(result)
+            # result[2] = str(result[2]) + " State"
+            # result[3] = str(result[3]) + " Million Networth"
+            result = list(result[0][1:])
+            result[1] = str(result[1]) + "  Million Networth"
+            
+            return jsonify({"message": "found", "result": result}), 200
+        else:
+            return jsonify({"message": "not found"}), 404
+
+    cursor.execute(query)
+    result = cursor.fetchone()
+
+    # Close the cursor and connection
+    if conn.is_connected():
+        cursor.close()
+    conn.close()
+
+
+    if result:
+        if ty == 'companies':
+            result = list(result)
+            result[2] = str(result[2]) + " State"
+            result[3] = str(result[3]) + " Million Networth"
+            
+            return jsonify({"message": "found", "result": result[1:]}), 200
+        elif ty == 'people':
+            return jsonify({"message": "found", "result": result[1:]}), 200
+        else:
+            result = list(result)
+            result[3] = str(result[3]) + " Rating"
+            return jsonify({"message": "found", "result": result[1:]}), 200
+    else:
+        return jsonify({"message": "not found"}), 404
+
+
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
