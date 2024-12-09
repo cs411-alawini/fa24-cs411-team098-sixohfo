@@ -38,7 +38,6 @@ const LoginPage = ({ onAuthSuccess }) => {
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
-    
 
     const user_id = Math.floor(Math.random() * (1000 - 20 + 1)) + 20;
 
@@ -52,13 +51,34 @@ const LoginPage = ({ onAuthSuccess }) => {
       if (response.data.message) {
         setSuccessMessage(response.data.message);
         setErrorMessage('');
-        setIsSignUp(false);  // Toggle back to login after successful sign-up
+        setIsSignUp(false); // Toggle back to login after successful sign-up
       }
     } catch (err) {
       setErrorMessage('An error occurred during sign-up. Please try again.');
       setSuccessMessage('');
     }
   };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await axios.delete('http://localhost:8000/delete_user', {
+        params: {
+          username: username,
+          password: password,
+        },
+      });
+  
+      if (response.data.message) {
+        setSuccessMessage(response.data.message);
+        setErrorMessage('');
+        // Optionally reset state or redirect
+      }
+    } catch (err) {
+      setErrorMessage('Failed to delete account. Please check your credentials.');
+      setSuccessMessage('');
+    }
+  };
+  
 
   return (
     <div className="login-container">
@@ -94,6 +114,15 @@ const LoginPage = ({ onAuthSuccess }) => {
       <button onClick={() => setIsSignUp(!isSignUp)} className="toggle-btn">
         {isSignUp ? 'Already have an account? Login' : 'Don’t have an account? Sign Up'}
       </button>
+
+      {!isSignUp && (
+        <div className="delete-account-container">
+        <button onClick={handleDeleteAccount} className="delete-btn">
+          Delete Account
+        </button>
+      </div>
+      
+      )}
     </div>
   );
 };

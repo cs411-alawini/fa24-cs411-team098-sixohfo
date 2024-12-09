@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './HomePage.css';  // Import the CSS for styling
+import './HomePage.css';
 
 const HomePage = () => {
   const [url, setUrl] = useState('');
   const [entities, setEntities] = useState({ books: [], companies: [], people: [] });
   const [error, setError] = useState('');
+  const [extraInfo, setExtraInfo] = useState({});
+  const [mostMentionedCompanies, setMostMentionedCompanies] = useState([]);
+  const [mostMentionedBooks, setMostMentionedBooks] = useState([]);
 
   const handleUrlChange = (e) => {
     setUrl(e.target.value);
@@ -14,16 +17,59 @@ const HomePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/analyze', { url });
+      const response = await axios.post('http://localhost:8000/analyze', { url });
       setEntities(response.data);
       setError('');
+      setExtraInfo({});
     } catch (err) {
       setError('Failed to fetch entities. Please check the URL or try again.');
     }
   };
 
+  const handleCardClick = async (type, entity) => {
+    try {
+      const response = await axios.post('http://localhost:8000/check_db_for_string', {
+        type,
+        entity,
+      });
+      setExtraInfo((prev) => ({
+        ...prev,
+        [`${type}-${entity}`]: response.data.additionalInfo,
+      }));
+    } catch (err) {
+      console.error('Failed to fetch additional info:', err);
+    }
+  };
+
+  const fetchMostMentionedCompanies = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/most_mentioned_companies_with_revenue');
+      setMostMentionedCompanies(response.data);
+    } catch (err) {
+      console.error('Failed to fetch most mentioned companies:', err);
+    }
+  };
+
+  const fetchMostMentionedBooks = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/most_mentioned_books');
+      setMostMentionedBooks(response.data);
+    } catch (err) {
+      console.error('Failed to fetch most mentioned books:', err);
+    }
+  };
+
   return (
     <div className="homepage">
+      <div className="header-buttons">
+        <button onClick={fetchMostMentionedCompanies} className="header-button">
+          Most Mentioned Companies
+        </button>
+        <button onClick={fetchMostMentionedBooks} className="header-button">
+          Most Mentioned Books
+        </button>
+      </div>
+
       <h1>Podcast Entity Analyzer</h1>
       <form onSubmit={handleSubmit} className="url-form">
         <input
@@ -39,45 +85,54 @@ const HomePage = () => {
       {error && <p className="error-message">{error}</p>}
 
       <div className="entities-container">
-        <div className="entities">
-          <h2>Books</h2>
-          {entities.books.length > 0 ? (
-            entities.books.map((book, index) => (
-              <div className="entity-card" key={index}>
-                <h3>{book}</h3>
-              </div>
-            ))
-          ) : (
-            <p>No books found</p>
-          )}
-        </div>
-
-        <div className="entities">
-          <h2>Companies</h2>
-          {entities.companies.length > 0 ? (
-            entities.companies.map((company, index) => (
-              <div className="entity-card" key={index}>
-                <h3>{company}</h3>
-              </div>
-            ))
-          ) : (
-            <p>No companies found</p>
-          )}
-        </div>
-
-        <div className="entities">
-          <h2>People</h2>
-          {entities.people.length > 0 ? (
-            entities.people.map((person, index) => (
-              <div className="entity-card" key={index}>
-                <h3>{person}</h3>
-              </div>
-            ))
-          ) : (
-            <p>No people found</p>
-          )}
-        </div>
+        {['books', 'companies', 'people'].map((type) => (
+          <div className="entities" key={type}>
+            <h2>{type.charAt(0).toUpperCase() + type.slice(1)}</h2>
+            {entities[type].length > 0 ? (
+              entities[type].map((entity, index) => (
+                <div
+                  className="entity-card"
+                  key={index}
+                  onClick={() => handleCardClick(type, entity)}
+                >
+                  <h3>{entity}</h3>
+                  {extraInfo[`${type}-${entity}`] && (
+                    <p className="extra-info">{extraInfo[`${type}-${entity}`]}</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p>No {type} found</p>
+            )}
+          </div>
+        ))}
       </div>
+
+      {mostMentionedCompanies.length > 0 && (
+        <div className="most-mentioned">
+          <h2>Most Mentioned Companies</h2>
+          <ul>
+            {mostMentionedCompanies.map((company, index) => (
+              <li key={index}>
+                {company.CompanyName} - Mentions: {company.MentionCount}, Revenue: {company.TotalRevenue}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {mostMentionedBooks.length > 0 && (
+        <div className="most-mentioned">
+          <h2>Most Mentioned Books</h2>
+          <ul>
+            {mostMentionedBooks.map((book, index) => (
+              <li key={index}>
+                {book.BookName} - Mentions: {book.MentionCount}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

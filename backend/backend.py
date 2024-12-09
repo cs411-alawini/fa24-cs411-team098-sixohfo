@@ -165,14 +165,18 @@ def delete_user():
     cursor = conn.cursor()
 
     try:
-        user_id = request.args.get('UserID')
+        username = request.args.get('username')
+        password = request.args.get('password')
 
         conn.start_transaction(isolation_level='SERIALIZABLE')
 
         # Check if user exists
-        cursor.execute("SELECT 1 FROM User WHERE UserID = %s", (user_id,))
-        if not cursor.fetchone():
-            return jsonify({"message": "User not found"}), 404
+        cursor.execute("SELECT UserID FROM User WHERE Username = %s AND Password = %s", (username, password))
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({"message": "User not found or incorrect credentials"}), 404
+
+        user_id = result[0]
 
         # Delete references to user's podcasts
         cursor.execute(
@@ -201,6 +205,8 @@ def delete_user():
     finally:
         cursor.close()
         conn.close()
+
+
 
     
 @app.route('/most_mentioned_entities_by_podcast', methods=['GET'])

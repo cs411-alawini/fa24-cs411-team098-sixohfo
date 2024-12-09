@@ -42,13 +42,13 @@
   .form-input {
     padding: 10px;
     font-size: 1rem;
-    width: 100%;
+    width: 90%;
     border: 1px solid #ccc;
     border-radius: 4px;
   }
   
   .submit-btn {
-    background-color: #007bff;
+    background-color: #6200ea;
     color: #fff;
     padding: 10px;
     font-size: 1rem;
@@ -59,16 +59,16 @@
   }
   
   .submit-btn:hover {
-    background-color: #0056b3;
+    background-color: #6a00ff;
   }
   
   /* Toggle between login and signup */
   .toggle-btn {
     background-color: #fff;
-    color: #007bff;
+    color: #6200ea;
     padding: 10px;
     font-size: 1rem;
-    border: 1px solid #007bff;
+    border: 1px solid #6200ea;
     border-radius: 4px;
     cursor: pointer;
     margin-top: 20px;
@@ -87,5 +87,23 @@
   .success-message {
     color: green;
     margin-top: 10px;
+  }
+  
+  .delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .delete-btn:hover {
+    background-color: #ff0000;
+  }
+  
+  .delete-account-container {
+    text-align: center;
+    margin-top: 20px;
   }
   
