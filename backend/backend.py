@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
 import mysql.connector
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 # MySQL Configuration
 db_config = {
     'user': 'root',
@@ -203,12 +204,17 @@ def valid_user():
         # Check if the user exists and the password is correct
         if result:
             return jsonify({
+                "success": True,  # Add success field
                 "message": f"Welcome back, {username}!",
                 "id": result[0],
                 "role": result[1]
             }), 200
         else:
-            return jsonify({"error": "Invalid username or password"}), 401
+            return jsonify({
+                "success": False,  # Add success field
+                "error": "Invalid username or password"
+            }), 401
+
         
     except mysql.connector.Error as e:
         # Handle the exception and return a meaningful error message to the client

@@ -1,84 +1,91 @@
 /* LoginPage.css */
-.login-page {
+
+/* General container for centering the form */
+.login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #f4f7fa;
-    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
   }
   
   h1 {
-    font-size: 2.5em;
+    font-size: 2rem;
     margin-bottom: 20px;
+    color: #333;
   }
   
-  .login-form {
+  /* Form container to ensure form elements are properly spaced */
+  .form-container {
     display: flex;
     flex-direction: column;
     width: 300px;
-    background-color: white;
+    background-color: #fff;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
   
-  .input-field {
-    padding: 10px;
+  .form-group {
     margin-bottom: 15px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
   }
   
-  .submit-button {
+  label {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #333;
+  }
+  
+  .form-input {
     padding: 10px;
-    margin: 10px;
-    font-size: 1em;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
   }
   
-  .submit-button:hover {
+  .submit-btn {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .submit-btn:hover {
     background-color: #0056b3;
   }
   
+  /* Toggle between login and signup */
+  .toggle-btn {
+    background-color: #fff;
+    color: #007bff;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  
+  .toggle-btn:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Error and Success messages */
   .error-message {
     color: red;
-    margin-top: 20px;
+    margin-top: 10px;
   }
   
   .success-message {
     color: green;
-    margin-top: 20px;
-  }
-  
-  .toggle-button {
-    margin-top: 20px;
-    background: none;
-    border: none;
-    color: #007BFF;
-    font-size: 1em;
-    cursor: pointer;
-  }
-  
-  .toggle-button:hover {
-    text-decoration: underline;
-  }
-  
-  @media (max-width: 768px) {
-    .login-page {
-      padding: 20px;
-    }
-  
-    .login-form {
-      width: 100%;
-      max-width: 400px;
-    }
+    margin-top: 10px;
   }
   

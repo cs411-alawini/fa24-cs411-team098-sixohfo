@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './LoginPage.css';  // Import CSS for styling
+import './LoginPage.css'; // Import the CSS file for styling
 
 const LoginPage = ({ onAuthSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false); // State to toggle between login and signup
 
-  // Handle form submission for login/signup (since both are handled the same way)
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:5000/auth', {
-        username,
-        password,
+      const response = await axios.post('http://localhost:8000/valid_user', {
+        username: username,
+        password: password,
       });
 
-      if (response.data.success) {
-        setSuccessMessage(response.data.message); // Show success message (login or signup)
+      if (response.data.message && response.data.message.includes('Welcome back')) {
+        setSuccessMessage(response.data.message);
         setErrorMessage('');
-        onAuthSuccess();  // Call onAuthSuccess to navigate to HomePage
+        onAuthSuccess();
+        navigate('/home');
       } else {
         setErrorMessage(response.data.message || 'An error occurred. Please try again.');
         setSuccessMessage('');
@@ -32,39 +36,60 @@ const LoginPage = ({ onAuthSuccess }) => {
     }
   };
 
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post('http://localhost:8000/signup', {
+        username: username,
+        password: password,
+      });
+
+      if (response.data.message) {
+        setSuccessMessage(response.data.message);
+        setErrorMessage('');
+        setIsSignUp(false);  // Toggle back to login after successful sign-up
+      }
+    } catch (err) {
+      setErrorMessage('An error occurred during sign-up. Please try again.');
+      setSuccessMessage('');
+    }
+  };
+
   return (
-    <div className="login-page">
-      <h1>Welcome to the App</h1>
-      <form className="login-form">
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="input-field"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input-field"
-          required
-        />
-
-        {/* Button to either login or sign up (both handled in the same way) */}
-        <button 
-          type="submit" 
-          className="submit-button"
-          onClick={handleSubmit}  
-        >
-          Login / Sign Up
-        </button>
+    <div className="login-container">
+      <h1>{isSignUp ? 'Sign Up' : 'Login'}</h1>
+      <form onSubmit={isSignUp ? handleSignUpSubmit : handleSubmit} className="form-container">
+        <div className="form-group">
+          <label htmlFor="username">Username:</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="form-input"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="form-input"
+            required
+          />
+        </div>
+        <button type="submit" className="submit-btn">{isSignUp ? 'Sign Up' : 'Login'}</button>
       </form>
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      <button onClick={() => setIsSignUp(!isSignUp)} className="toggle-btn">
+        {isSignUp ? 'Already have an account? Login' : 'Don’t have an account? Sign Up'}
+      </button>
     </div>
   );
 };
