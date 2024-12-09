@@ -112,6 +112,45 @@ def update_user(user_id):
         cursor.close()
         conn.close()
 
+@app.route("/add_user", methods=['POST'])
+def add_new_user():
+    data = request.json
+    try:
+        conn = get_db_connection()
+        
+        # Create a cursor object
+        cur = conn.cursor()
+        
+        # Extract the userid, username, and password from the data
+        user_id = data.get('user_id')
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Check if all required fields are present
+        if not all([user_id, username, password]):
+            return jsonify({"error": "All fields are required to add a new user"}), 400
+        
+        # Execute the query to insert the new user into the database
+        query = "INSERT INTO User (UserID, Username, Password) VALUES (%s, %s, %s)"
+        params = (user_id, username, password)
+        
+        cur.execute(query, params)
+        conn.commit()
+        
+        return jsonify({"message": f"New user '{username}' added successfully"}), 201
+    
+    except mysql.connector.Error as e:
+        # Handle the exception and return a meaningful error message to the client
+        error_message = f"Database connection failed: {e}"
+        if conn.is_connected():
+            cur.close()
+        conn.close()
+        return jsonify({"error": error_message}), 500
+    
+    finally:
+        # Close the cursor (not needed, as it's already closed in the exception handler)
+        pass
+
 ## DELETE USER
 @app.route('/delete_user', methods=['DELETE'])
 def delete_user():
