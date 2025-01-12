@@ -290,8 +290,8 @@ def valid_user():
         pass
 
 
-
-genai.configure(api_key="AIzaSyDMe6QJjtX4L4_IH8FRmrMqsHrwc5FCNbY")
+"""Enter your Gemini API Key."""
+genai.configure(api_key="")
 def get_youtube_id(url):
     video_id = url.split("v=")[1]
     ampersand_pos = video_id.find("&")
